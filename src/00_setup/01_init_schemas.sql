@@ -1,6 +1,6 @@
-CREATE CATALOG instacart;
+CREATE CATALOG IF NOT EXISTS instacart;
 
-USE CATALOG instacart
+USE CATALOG instacart;
 
 -- Raw tables loaded from the original CSV files.
 CREATE SCHEMA IF NOT EXISTS instacart_raw;
