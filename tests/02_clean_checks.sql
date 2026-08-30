@@ -1,0 +1,17 @@
+-- tests/02_clean_checks.sql
+-- Purpose: Data quality checks for the silver layer after transformation.
+
+-- Instructions - what to put here:
+-- 1) Primary key uniqueness checks for silver tables (orders, products, order_products).
+-- 2) Data type validation: ensure numeric fields cast successfully and fall within expected ranges.
+-- 3) Referential integrity: foreign keys in silver (e.g., order_products.order_id -> silver.orders.order_id).
+-- 4) Null rate thresholds: set acceptable thresholds for non-critical columns and fail if exceeded for critical ones.
+--
+-- Example checks:
+-- -- PK uniqueness
+-- SELECT order_id, COUNT(*) FROM silver.orders GROUP BY order_id HAVING COUNT(*) > 1;
+--
+-- -- FK integrity
+-- SELECT op.order_id FROM silver.order_products op LEFT JOIN silver.orders o ON op.order_id = o.order_id WHERE o.order_id IS NULL LIMIT 100;
+--
+-- Add the checks into your orchestration/CI and surface failures as tickets or alerts.

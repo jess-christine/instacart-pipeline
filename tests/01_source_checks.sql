@@ -1,0 +1,16 @@
+-- tests/01_source_checks.sql
+-- Purpose: Source-level sanity checks to run immediately after ingestion into bronze.
+
+-- Instructions - what to put here:
+-- 1) Validate file counts: compare number of source files expected vs processed_files table.
+-- 2) Row count sanity: ensure each raw table has > 0 rows and matches expected sample counts.
+-- 3) Schema conformity: for structured files (CSV/JSON), run a small schema validation (column counts/types).
+-- 4) Encoding and null checks: detect bad UTF-8 sequences or unexpected nulls in required columns.
+--
+-- Example checks (replace with platform-specific SQL as needed):
+-- SELECT COUNT(*) FROM bronze.orders_raw;
+-- SELECT source_file, COUNT(*) as rows FROM bronze.orders_raw GROUP BY source_file LIMIT 20;
+--
+-- Operational notes:
+-- - Run these immediately after the COPY/LOAD step.
+-- - Fail the job if any critical check (e.g., zero rows or encoding errors) triggers.

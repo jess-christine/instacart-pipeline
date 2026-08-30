@@ -1,0 +1,17 @@
+-- tests/04_business_query_checks.sql
+-- Purpose: High-level business-facing checks to validate key metrics and SLAs.
+
+-- Instructions - what to put here:
+-- 1) Define critical business metrics (e.g., daily orders, items sold, repeat purchase rate) and expected ranges or historical baselines.
+-- 2) Implement anomaly detection rules (e.g., >20% day-over-day drop) and surface alerts when triggered.
+-- 3) Smoke tests for common BI queries: ensure sample dashboard queries return results within SLA time and expected ranges.
+-- 4) Document steps to investigate metric failures and link to source-level DQ checks that may explain anomalies.
+--
+-- Example checks:
+-- -- Daily orders
+-- SELECT order_date, COUNT(DISTINCT order_id) as daily_orders FROM gold.fact_order_items GROUP BY order_date ORDER BY order_date DESC LIMIT 7;
+--
+-- -- Repeat purchase rate (example)
+-- -- Compute and compare to baseline; fail if outside acceptable band.
+--
+-- Integrate these checks into monitoring dashboards and incident runbooks for on-call responders.

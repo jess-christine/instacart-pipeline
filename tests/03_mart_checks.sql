@@ -1,0 +1,17 @@
+-- tests/03_mart_checks.sql
+-- Purpose: Quality and sanity checks for gold (mart) layer and dimensional models.
+
+-- Instructions - what to put here:
+-- 1) Verify SCD correctness: exactly one active record per natural key in dim tables (e.g., dim_products).
+-- 2) Fact/dimension joinability: ensure fact rows reference existing dimension surrogate keys (product_key not null and exists in dim_products).
+-- 3) Aggregate reconciliation: row counts and sums in fact tables match upstream totals from silver within acceptable tolerances.
+-- 4) Partition and distribution checks: ensure recent partitions contain expected data and there are no empty partitions for active date ranges.
+--
+-- Example checks:
+-- -- SCD active record check
+-- SELECT product_id, COUNT(*) FROM gold.dim_products WHERE effective_to IS NULL GROUP BY product_id HAVING COUNT(*) > 1;
+--
+-- -- Fact FK check
+-- SELECT f.order_id FROM gold.fact_order_items f LEFT JOIN gold.dim_products d ON f.product_key = d.product_key WHERE d.product_key IS NULL LIMIT 100;
+--
+-- Include reconciliation queries comparing sums/counts between silver and gold and fail if divergence exceeds threshold.
