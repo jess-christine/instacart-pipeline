@@ -3,7 +3,7 @@ CREATE CATALOG instacart;
 USE CATALOG instacart
 
 -- Raw tables loaded from the original CSV files.
-CREATE SCHEMA IF NOT EXISTS ic_raw;
+CREATE SCHEMA IF NOT EXISTS instacart_raw;
 
 -- Cleaned and standardized tables.
 CREATE SCHEMA IF NOT EXISTS instacart_clean;
