@@ -1,9 +1,32 @@
-File purpose: Audit table(s) to track schema changes, deployments, and pipeline runs.
+-- src/00_setup/03_create_audit_table.sql
+-- Audit and pipeline run metadata tables
 
-Instructions - what to put here:
-1) Create a schema_evolution (or equivalent) table that records who changed what, when, and why (object_type, object_name, description, version_tag).
-2) Optionally add pipeline_run table to capture ingestion runs: run_id, start_time, end_time, files_processed, rows_ingested, status.
-3) Provide example INSERT statements to log migrations and pipeline runs.
-4) Describe the expected usage pattern: insert on each deployment, include CI hooks to write run metadata.
+CREATE TABLE IF NOT EXISTS instacart_audit.schema_evolution (
+  change_id STRING,
+  change_ts TIMESTAMP,
+  description STRING,
+  version_tag STRING
+) USING DELTA;
 
-Operational note: Keep audit data immutable; do not backfill without documentation and version_tagging.
+CREATE TABLE IF NOT EXISTS instacart_audit.pipeline_runs (
+  run_id STRING,
+  start_time TIMESTAMP,
+  end_time TIMESTAMP,
+  status STRING,
+  files_processed INT,
+  rows_ingested BIGINT,
+  error_text STRING
+) USING DELTA;
+
+CREATE TABLE IF NOT EXISTS instacart_audit.processed_files (
+  file_name STRING,
+  checksum STRING,
+  batch_id STRING,
+  processed_at TIMESTAMP,
+  status STRING,
+  metadata MAP<STRING,STRING>
+) USING DELTA;
+
+-- Usage examples (pseudocode):
+-- INSERT INTO instacart_audit.processed_files VALUES ('orders.csv','abc123','2023-01-01-1',current_timestamp(),'processing', map('source','s3://...'));
+-- On success UPDATE instacart_audit.processed_files SET status='done' WHERE file_name='...';
