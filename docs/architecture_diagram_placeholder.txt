@@ -1,0 +1,5 @@
+Instructions for architecture_diagram placeholder:
+
+1) Create a visual diagram showing data lineage: sources -> bronze -> silver -> gold -> BI.
+2) Include annotations for file locations/stages, orchestration jobs, and monitoring/DQ steps.
+3) Export the final diagram as docs/architecture_diagram.png and keep the source diagram file in a design/ directory if desired.

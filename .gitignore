@@ -1,0 +1,5 @@
+Instructions for .gitignore:
+
+1) Include common ignores for local development files, credentials, and IDE/editor metadata.
+2) Document any platform-specific files that should be excluded (e.g., local parquet files, dbt artifacts).
+3) Keep sensitive files out of the repo and add guidance for storing secrets securely (Vault, GitHub Secrets).
