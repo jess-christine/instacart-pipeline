@@ -45,10 +45,7 @@ To evaluate the deployment readiness of the pipeline, the following repeatable s
 The repository is modularized to divide the system into distinct, well-defined sections, ensuring maintainability and scalability.
 
 ```text
-instacart-order-management-data-model/
-├── .github/
-│   ├── ISSUE_TEMPLATE.md                  
-│   └── pull_request_template.md           
+instacart/        
 ├── src/
 │   ├── 00_setup/                          
 │   │   ├── 01_init_schemas.sql            
@@ -73,6 +70,9 @@ instacart-order-management-data-model/
 │       └── business_views.sql             
 ├── docs/
 │   ├── architecture_diagram.png           
-│   └── data_dictionary.md                 
+│   └── data_dictionary.md
+│   └── star_schema.md
+│   └── assumptions.md
+│   └── team_timeline.md                   
 ├── .gitignore                             
 └── README.md
