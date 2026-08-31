@@ -1,6 +1,7 @@
-Purpose: Ingest departments reference data into bronze.
-
-Instructions - what to put here:
-1) Document the departments file layout and any business rules about department IDs or naming conventions.
-2) Provide load templates for your environment and post-load validation queries.
-3) Note how departments join to products and what rules to enforce during silver transformations.
+CREATE TABLE IF NOT EXISTS instacart.instacart_raw.departments_raw
+USING DELTA
+AS
+SELECT *,
+  current_timestamp() AS ingestion_timestamp,
+  current_date() AS ingestion_date
+FROM read_files('/Volumes/instacart/default/ftw_b12_de/week06/instacart_csv/departments.csv');
