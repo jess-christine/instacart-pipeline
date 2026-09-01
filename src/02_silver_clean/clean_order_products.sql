@@ -1,6 +1,6 @@
 USE CATALOG instacart;
 
--- 1. Create Target Silver Table (Idempotent)
+-- 1. Create Target Silver Table 
 CREATE TABLE IF NOT EXISTS instacart.instacart_clean.order_products_clean (
   order_id BIGINT,
   product_id BIGINT,
