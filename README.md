@@ -39,6 +39,26 @@ To evaluate the deployment readiness of the pipeline, the following repeatable s
 - [ ] **Audit Compliance:** 100% of rows in the Bronze and Silver layers contain valid `_load_date` and `_source_file` metadata timestamps.
 - [ ] **Constraint Validation:** Execution of the validation suite yields 0 constraint violations before views are exposed to the dashboard.
 
+
+## 🛠️ Known Data Quality Issue
+
+Product CSV Parsing Issue
+
+During the creation of `clean.products`, one raw record failed numeric casting because its product name contained embedded commas:
+
+`Scotch Kids 5" Scissors, Blunted, Red`
+
+The commas caused the raw CSV fields to become misaligned, placing `Blunted` under `aisle_id` and `Red` under `department_id`.
+
+**Temporary resolution:**
+Used `TRY_CAST` for numeric columns and excluded records with invalid `product_id`, `aisle_id`, or `department_id` values.
+
+**Impact:**
+One malformed product record (`product_id = 6816`) was excluded from the clean table.
+
+**Recommended permanent fix:**
+Update the Bronze ingestion configuration to correctly handle quoted product names containing commas, then reload the affected record.
+
 ---
 
 ## 🗂️ Repository Structure
