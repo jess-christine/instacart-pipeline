@@ -39,6 +39,13 @@ To evaluate the deployment readiness of the pipeline, the following repeatable s
 - [ ] **Audit Compliance:** 100% of rows in the Bronze and Silver layers contain valid `_load_date` and `_source_file` metadata timestamps.
 - [ ] **Constraint Validation:** Execution of the validation suite yields 0 constraint violations before views are exposed to the dashboard.
 
+## 🛠️ Known Data Quality Issue
+
+Product `6816` contained commas in its name, causing the raw CSV values to move into the wrong columns. To prevent the pipeline from failing, this malformed record was excluded during cleaning.
+
+**Impact:** Only one product record (`product_id = 6816`) is missing from the clean products table.
+
+---
 ---
 
 ## 🗂️ Repository Structure
