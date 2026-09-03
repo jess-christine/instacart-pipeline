@@ -1,5 +1,5 @@
 -- Create the clean table for department
-CREATE TABLE IF NOT EXISTS instacart.instacart_clean.departments_clean (
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.departments_silver (
     department_id INT PRIMARY KEY,
     department VARCHAR(100) UNIQUE,
     ingestion_timestamp TIMESTAMP,
@@ -7,14 +7,14 @@ CREATE TABLE IF NOT EXISTS instacart.instacart_clean.departments_clean (
 );
 
 -- Merge cleaned data from raw table
-MERGE INTO instacart.instacart_clean.departments_clean AS target
+MERGE INTO instacart.instacart_silver.departments_silver AS target
 USING (
     SELECT DISTINCT
         department_id,
         LOWER(TRIM(department)) AS department,
         ingestion_timestamp,
         CAST(ingestion_timestamp AS DATE) AS ingestion_date
-    FROM instacart.instacart_raw.departments_raw
+    FROM instacart.instacart_bronze.departments_bronze
     WHERE department_id IS NOT NULL
 ) AS source
 ON target.department_id = source.department_id

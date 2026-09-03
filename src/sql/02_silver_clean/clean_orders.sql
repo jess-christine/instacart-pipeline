@@ -9,7 +9,7 @@ WITH typed_orders AS (
         TRY_CAST(order_hour_of_day AS INT) AS order_hour_of_day,
         TRY_CAST(days_since_prior_order AS DOUBLE)
             AS days_since_prior_order
-    FROM instacart.instacart_raw.orders_raw
+    FROM instacart.instacart_bronze.orders_bronze
 ),
 ranked_orders AS (
     SELECT
@@ -36,7 +36,7 @@ FROM ranked_orders
 WHERE row_number = 1;
 
 
-CREATE TABLE IF NOT EXISTS instacart.instacart_clean.orders_prior_clean AS
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.orders_prior_silver AS
 SELECT
     order_id,
     user_id,
@@ -47,6 +47,48 @@ SELECT
     days_since_prior_order
 FROM orders_staging
 WHERE eval_set = 'prior'
+  AND order_id IS NOT NULL
+  AND user_id IS NOT NULL
+  AND order_number IS NOT NULL
+  AND order_dow BETWEEN 0 AND 6
+  AND order_hour_of_day BETWEEN 0 AND 23
+  AND (
+        days_since_prior_order BETWEEN 0 AND 30
+        OR days_since_prior_order IS NULL
+      );
+
+
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.orders_train_silver AS
+SELECT
+    order_id,
+    user_id,
+    eval_set,
+    order_number,
+    order_dow,
+    order_hour_of_day,
+    days_since_prior_order
+FROM orders_staging
+WHERE eval_set = 'train'
+  AND order_id IS NOT NULL
+  AND user_id IS NOT NULL
+  AND order_number IS NOT NULL
+  AND order_dow BETWEEN 0 AND 6
+  AND order_hour_of_day BETWEEN 0 AND 23
+  AND (
+        days_since_prior_order BETWEEN 0 AND 30
+        OR days_since_prior_order IS NULL
+      );
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.orders_test_silver AS
+SELECT
+    order_id,
+    user_id,
+    eval_set,
+    order_number,
+    order_dow,
+    order_hour_of_day,
+    days_since_prior_order
+FROM orders_staging
+WHERE eval_set = 'test'
   AND order_id IS NOT NULL
   AND user_id IS NOT NULL
   AND order_number IS NOT NULL

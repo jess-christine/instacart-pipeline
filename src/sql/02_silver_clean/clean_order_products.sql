@@ -1,7 +1,7 @@
 USE CATALOG instacart;
 
 -- 1. Create Target Silver Table 
-CREATE TABLE IF NOT EXISTS instacart.instacart_clean.order_products_clean (
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.order_products_silver (
   order_id BIGINT,
   product_id BIGINT,
   add_to_cart_order INT,
@@ -16,7 +16,7 @@ USING DELTA
 CLUSTER BY (order_id, product_id);
 
 -- 2. Dynamic MERGE Execution (dedup + basic validation, no DQ flag columns)
-MERGE INTO instacart.instacart_clean.order_products_clean AS tgt
+MERGE INTO instacart.instacart_silver.order_products_silver AS tgt
 USING (
   WITH raw_source AS (
     SELECT 
@@ -27,7 +27,7 @@ USING (
       :dataset_label AS dataset_source,
       ingestion_timestamp,
       ingestion_date
-    FROM instacart_raw.IDENTIFIER(:source_table)
+    FROM IDENTIFIER(CONCAT('instacart_bronze.', :source_table, '_bronze'))
   ),
 
   attribute_checks AS (

@@ -1,5 +1,5 @@
 -- Create the clean table for products
-CREATE TABLE IF NOT EXISTS instacart.instacart_clean.products_clean (
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.products_silver (
     product_id INT PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
     aisle_id INT NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS instacart.instacart_clean.products_clean (
 );
 
 -- Standardize, validate, deduplicate, and merge product records
-MERGE INTO instacart.instacart_clean.products_clean AS target
+MERGE INTO instacart.instacart_silver.products_silver AS target
 
 USING (
     SELECT
@@ -41,7 +41,7 @@ USING (
                 ORDER BY CAST(ingestion_timestamp AS TIMESTAMP) DESC
             ) AS row_num
 
-        FROM instacart.instacart_raw.products_raw
+        FROM instacart.instacart_bronze.products_bronze
 
         WHERE product_id IS NOT NULL
           AND product_name IS NOT NULL

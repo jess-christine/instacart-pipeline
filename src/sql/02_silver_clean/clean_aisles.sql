@@ -6,7 +6,7 @@
 
 
 -- Create Clean Aisles Table
-CREATE TABLE IF NOT EXISTS instacart.instacart_clean.aisles_clean AS
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.aisles_silver AS
 
 
 WITH cleaned_source AS (
@@ -26,7 +26,7 @@ WITH cleaned_source AS (
         ) AS rn
 
 
-    FROM instacart.instacart_raw.aisles_raw
+    FROM instacart.instacart_bronze.aisles_bronze
 
 
     WHERE
@@ -63,43 +63,43 @@ WHERE rn = 1;
 
 -- Validation Summary
 SELECT
-    (SELECT COUNT(*) FROM instacart.instacart_raw.aisles_raw) AS raw_row_count,
-    (SELECT COUNT(*) FROM instacart.instacart_clean.aisles_clean) AS clean_row_count,
+    (SELECT COUNT(*) FROM instacart.instacart_bronze.aisles_bronze) AS bronze_row_count,
+    (SELECT COUNT(*) FROM instacart.instacart_silver.aisles_silver) AS clean_row_count,
 
 
     (SELECT COUNT(*)
      FROM (
          SELECT aisle_id
-         FROM instacart.instacart_clean.aisles_clean
+         FROM instacart.instacart_silver.aisles_silver
          GROUP BY aisle_id
          HAVING COUNT(*) > 1
      )) AS duplicate_aisle_ids,
 
 
     (SELECT COUNT(*)
-     FROM instacart.instacart_clean.aisles_clean
+     FROM instacart.instacart_silver.aisles_silver
      WHERE aisle_id IS NULL) AS null_aisle_ids,
 
 
     (SELECT COUNT(*)
-     FROM instacart.instacart_clean.aisles_clean
+     FROM instacart.instacart_silver.aisles_silver
      WHERE aisle_name IS NULL) AS null_aisle_names,
 
 
     (SELECT COUNT(*)
-     FROM instacart.instacart_clean.aisles_clean
+     FROM instacart.instacart_silver.aisles_silver
      WHERE TRIM(aisle_name) = '') AS blank_aisle_names,
 
 
     (SELECT COUNT(*)
-     FROM instacart.instacart_clean.aisles_clean
+     FROM instacart.instacart_silver.aisles_silver
      WHERE aisle_id <= 0) AS invalid_aisle_ids,
 
 
     (SELECT COUNT(DISTINCT aisle_id)
-     FROM instacart.instacart_raw.aisles_raw) AS raw_distinct_aisles,
+     FROM instacart.instacart_bronze.aisles_bronze) AS bronze_distinct_aisles,
 
 
     (SELECT COUNT(DISTINCT aisle_id)
-     FROM instacart.instacart_clean.aisles_clean) AS clean_distinct_aisles;​‌
+FROM instacart.instacart_silver.aisles_silver) AS clean_distinct_aisles;
 

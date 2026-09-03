@@ -1,6 +1,4 @@
 -- Orders Incremental MERGE
--- Source: instacart.instacart_raw.orders_raw
--- Targets: instacart.instacart_clean
 
 
 -- 1. Create the standardized and deduplicated merge source
@@ -17,7 +15,7 @@ WITH typed_orders AS (
             AS order_hour_of_day,
         TRY_CAST(days_since_prior_order AS DOUBLE)
             AS days_since_prior_order
-    FROM instacart.instacart_raw.orders_raw
+    FROM instacart.instacart_bronze.orders_bronze
 ),
 
 ranked_orders AS (
@@ -62,7 +60,7 @@ WHERE rn = 1
 
 -- 2. Merge Prior orders
 
-MERGE INTO instacart.instacart_clean.orders_prior_clean AS target
+MERGE INTO instacart.instacart_silver.orders_prior_silver AS target
 USING (
     SELECT *
     FROM orders_merge_source
@@ -101,7 +99,7 @@ VALUES (
 
 -- 3. Merge Train orders
 
-MERGE INTO instacart.instacart_clean.orders_train_clean AS target
+MERGE INTO instacart.instacart_silver.orders_train_silver AS target
 USING (
     SELECT *
     FROM orders_merge_source
@@ -140,7 +138,7 @@ VALUES (
 
 -- 4. Merge Test orders
 
-MERGE INTO instacart.instacart_clean.orders_test_clean AS target
+MERGE INTO instacart.instacart_silver.orders_test_silver AS target
 USING (
     SELECT *
     FROM orders_merge_source

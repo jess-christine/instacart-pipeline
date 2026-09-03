@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS instacart.instacart_raw.departments_raw
+CREATE TABLE IF NOT EXISTS instacart.instacart_bronze.departments_bronze
 USING DELTA
 AS
 SELECT *,

@@ -3,7 +3,7 @@
 USE CATALOG instacart;
 
 -- 1. Create Target Gold Table with Primary Key and Timestamps
-CREATE TABLE IF NOT EXISTS instacart.instacart_mart.dim_order (
+CREATE TABLE IF NOT EXISTS instacart.instacart_gold.dim_order (
   order_id BIGINT NOT NULL,
   user_id BIGINT,
   order_number INT,
@@ -15,13 +15,13 @@ USING DELTA
 CLUSTER BY (order_id);
 
 -- 2. Incremental MERGE Execution
-MERGE INTO instacart.instacart_mart.dim_order AS tgt
+MERGE INTO instacart.instacart_gold.dim_order AS tgt
 USING (
   SELECT 
     order_id, 
     user_id, 
     order_number 
-  FROM instacart.instacart_clean.orders_prior_clean
+  FROM instacart.instacart_silver.orders_prior_silver
   
   UNION ALL
   
@@ -29,7 +29,7 @@ USING (
     order_id, 
     user_id, 
     order_number 
-  FROM instacart.instacart_clean.orders_train_clean
+  FROM instacart.instacart_silver.orders_train_silver
 
 ) AS src
 ON tgt.order_id = src.order_id
