@@ -1,0 +1,296 @@
+{
+  "name": "instacart-pipeline-production",
+  "description": "Managed by GitHub Actions. Runs the Instacart Bronze, Silver, Gold, and release quality-gate SQL pipeline.",
+  "git_source": {
+    "git_url": "https://github.com/jess-christine/instacart-pipeline.git",
+    "git_provider": "gitHub",
+    "git_commit": "__GIT_COMMIT__"
+  },
+  "max_concurrent_runs": 1,
+  "queue": {
+    "enabled": true
+  },
+  "timeout_seconds": 7200,
+  "tags": {
+    "project": "instacart-pipeline",
+    "managed_by": "github-actions"
+  },
+  "tasks": [
+    {
+      "task_key": "init_schemas",
+      "description": "Create project schemas when they do not exist.",
+      "sql_task": {
+        "file": {
+          "path": "src/sql/00_setup/00_init_schemas.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 900,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "ingest_aisles",
+      "depends_on": [{"task_key": "init_schemas"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/01_bronze_ingest/ingest_aisles.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1200,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "ingest_departments",
+      "depends_on": [{"task_key": "init_schemas"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/01_bronze_ingest/ingest_departments.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1200,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "ingest_order_products_prior",
+      "depends_on": [{"task_key": "init_schemas"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/01_bronze_ingest/ingest_order_products_prior.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "ingest_order_products_train",
+      "depends_on": [{"task_key": "init_schemas"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/01_bronze_ingest/ingest_order_products_train.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1200,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "ingest_orders",
+      "depends_on": [{"task_key": "init_schemas"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/01_bronze_ingest/ingest_orders.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "ingest_products",
+      "depends_on": [{"task_key": "init_schemas"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/01_bronze_ingest/ingest_products.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1200,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "clean_aisles",
+      "depends_on": [{"task_key": "ingest_aisles"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/02_silver_clean/clean_aisles.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "clean_departments",
+      "depends_on": [{"task_key": "ingest_departments"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/02_silver_clean/clean_departments.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1200,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "clean_orders_merge",
+      "depends_on": [{"task_key": "ingest_orders"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/02_silver_clean/clean_order_merge.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 2400,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "clean_products",
+      "depends_on": [{"task_key": "ingest_products"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/02_silver_clean/clean_products.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "clean_order_products_prior",
+      "depends_on": [{"task_key": "ingest_order_products_prior"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/02_silver_clean/clean_order_products.sql",
+          "source": "GIT"
+        },
+        "parameters": {
+          "dataset_label": "prior",
+          "source_table": "order_products_prior"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 3600,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "clean_order_products_train",
+      "depends_on": [
+        {"task_key": "ingest_order_products_train"},
+        {"task_key": "clean_order_products_prior"}
+      ],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/02_silver_clean/clean_order_products.sql",
+          "source": "GIT"
+        },
+        "parameters": {
+          "dataset_label": "train",
+          "source_table": "order_products_train"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "dim_order",
+      "depends_on": [{"task_key": "clean_orders_merge"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/03_gold_model/dim_order.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "dim_order_time",
+      "depends_on": [{"task_key": "clean_orders_merge"}],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/03_gold_model/dim_order_time.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "dim_products",
+      "depends_on": [
+        {"task_key": "clean_aisles"},
+        {"task_key": "clean_departments"},
+        {"task_key": "clean_products"}
+      ],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/03_gold_model/dim_products.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "fact_order_items",
+      "depends_on": [
+        {"task_key": "clean_order_products_train"},
+        {"task_key": "dim_order_time"},
+        {"task_key": "dim_products"}
+      ],
+      "sql_task": {
+        "file": {
+          "path": "src/sql/03_gold_model/fact_order_items.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 3600,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "release_quality_gate",
+      "depends_on": [
+        {"task_key": "dim_order"},
+        {"task_key": "dim_order_time"},
+        {"task_key": "dim_products"},
+        {"task_key": "fact_order_items"}
+      ],
+      "sql_task": {
+        "file": {
+          "path": "tests/99_cicd_quality_gate.sql",
+          "source": "GIT"
+        },
+        "warehouse_id": "__DATABRICKS_WAREHOUSE_ID__"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 0,
+      "disable_auto_optimization": true
+    }
+  ]
+}

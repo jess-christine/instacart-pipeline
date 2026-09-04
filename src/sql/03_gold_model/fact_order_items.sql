@@ -46,7 +46,7 @@ WHEN MATCHED THEN UPDATE SET
     target._source_file = source._source_file
 
 WHEN NOT MATCHED THEN INSERT (
-    order_id, product_id, timekey, department_id, aisle_id,
+    order_id, product_id, order_time_key, department_id, aisle_id,
     add_to_cart_order, reordered, _load_date, _source_file
 ) VALUES (
     source.order_id, source.product_id, source.order_time_key, source.department_id,
