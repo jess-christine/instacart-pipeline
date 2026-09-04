@@ -1,0 +1,77 @@
+name: Instacart CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "ops/**"
+      - "scripts/**"
+      - ".github/workflows/ci-cd.yml"
+      - ".github/dependabot.yml"
+      - ".gitignore"
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "ops/**"
+      - "scripts/**"
+      - ".github/workflows/ci-cd.yml"
+      - ".github/dependabot.yml"
+      - ".gitignore"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# PR runs are collapsed to the newest commit. Production runs are queued so a
+# deployment already in progress is never canceled halfway through the job.
+concurrency:
+  group: instacart-pipeline-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    name: Validate repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate SQL, notebooks, job manifest, and repository size
+        run: python3 scripts/ci_validate.py
+
+      - name: Check whitespace errors
+        run: git diff --check
+
+  deploy:
+    name: Deploy and run Databricks job
+    needs: validate
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: production
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Deploy and run exact commit in Databricks
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_WAREHOUSE_ID: ${{ secrets.DATABRICKS_WAREHOUSE_ID }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: bash scripts/deploy_databricks_job.sh

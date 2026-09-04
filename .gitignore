@@ -1,5 +1,44 @@
-Instructions for .gitignore:
+# Databricks local state and bundle files
+.databricks/
+.bundle/
 
-1) Include common ignores for local development files, credentials, and IDE/editor metadata.
-2) Document any platform-specific files that should be excluded (e.g., local parquet files, dbt artifacts).
-3) Keep sensitive files out of the repo and add guidance for storing secrets securely (Vault, GitHub Secrets).
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local data files (keep source data in governed storage, not Git)
+*.csv
+*.csv.gz
+*.tsv
+*.parquet
+*.avro
+*.jsonl
+*.db
+*.sqlite
+*.sqlite3
+
+# Python and notebook-generated files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+.coverage
+
+# Build output, logs, and temporary files
+build/
+dist/
+*.log
+*.tmp
+*.bak
+
+# IDE and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
