@@ -2,7 +2,7 @@ name: Instacart CI/CD
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "src/**"
       - "tests/**"
@@ -12,7 +12,7 @@ on:
       - ".github/dependabot.yml"
       - ".gitignore"
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "src/**"
       - "tests/**"
@@ -26,10 +26,10 @@ on:
 permissions:
   contents: read
 
-# PR runs are collapsed to the newest commit. Production runs are queued so a
-# deployment already in progress is never canceled halfway through the job.
+# PR runs are collapsed to the newest commit. Environment deployments are
+# queued so a deployment already in progress is never canceled halfway through.
 concurrency:
-  group: instacart-pipeline-${{ github.ref }}
+  group: instacart-pipeline-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -51,8 +51,35 @@ jobs:
       - name: Check whitespace errors
         run: git diff --check
 
-  deploy:
-    name: Deploy and run Databricks job
+  deploy_development:
+    name: Deploy and run Databricks job (development)
+    needs: validate
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: development
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Deploy and run exact commit in development
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_WAREHOUSE_ID: ${{ secrets.DATABRICKS_WAREHOUSE_ID }}
+          DATABRICKS_ENVIRONMENT: development
+          DATABRICKS_JOB_NAME: instacart-pipeline-development
+          GITHUB_SHA: ${{ github.sha }}
+        run: bash scripts/deploy_databricks_job.sh
+
+  deploy_production:
+    name: Deploy and run Databricks job (production)
     needs: validate
     if: >-
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
@@ -68,10 +95,12 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Deploy and run exact commit in Databricks
+      - name: Deploy and run exact commit in production
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_WAREHOUSE_ID: ${{ secrets.DATABRICKS_WAREHOUSE_ID }}
+          DATABRICKS_ENVIRONMENT: production
+          DATABRICKS_JOB_NAME: instacart-pipeline-production
           GITHUB_SHA: ${{ github.sha }}
         run: bash scripts/deploy_databricks_job.sh

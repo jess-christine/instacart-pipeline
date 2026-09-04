@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_TRACKED_FILE_BYTES = 5 * 1024 * 1024
+REPOSITORY_URL = "https://github.com/ItsYangCoder/instacart-pipeline.git"
 BLOCKED_DATA_EXTENSIONS = {
     ".csv",
     ".csv.gz",
@@ -112,6 +113,16 @@ def validate() -> list[str]:
         fail(errors, f"ops/instacart_job.json: invalid JSON ({exc})")
         return errors
 
+    git_source = manifest.get("git_source", {})
+    if git_source.get("git_url") != REPOSITORY_URL:
+        fail(errors, "ops/instacart_job.json: git source must point to this repository")
+    if git_source.get("git_commit") != "__GIT_COMMIT__":
+        fail(errors, "ops/instacart_job.json: Git commit must remain a runtime placeholder")
+    if manifest.get("name") != "__DATABRICKS_JOB_NAME__":
+        fail(errors, "ops/instacart_job.json: job name must remain a runtime placeholder")
+    if manifest.get("tags", {}).get("environment") != "__DATABRICKS_ENVIRONMENT__":
+        fail(errors, "ops/instacart_job.json: environment must remain a runtime placeholder")
+
     tasks = manifest.get("tasks")
     if not isinstance(tasks, list) or not tasks:
         fail(errors, "ops/instacart_job.json: tasks must be a non-empty list")
@@ -125,7 +136,7 @@ def validate() -> list[str]:
         task_key = task.get("task_key", "<missing task_key>")
         sql_task = task.get("sql_task")
         if not isinstance(sql_task, dict):
-            fail(errors, f"{task_key}: only SQL tasks are allowed in the production job")
+            fail(errors, f"{task_key}: only SQL tasks are allowed in the managed job")
             continue
 
         file_spec = sql_task.get("file", {})

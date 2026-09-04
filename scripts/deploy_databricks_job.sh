@@ -5,9 +5,11 @@ set -euo pipefail
 : "${DATABRICKS_TOKEN:?DATABRICKS_TOKEN is required}"
 : "${DATABRICKS_WAREHOUSE_ID:?DATABRICKS_WAREHOUSE_ID is required}"
 : "${GITHUB_SHA:?GITHUB_SHA is required}"
+: "${DATABRICKS_ENVIRONMENT:?DATABRICKS_ENVIRONMENT is required}"
+: "${DATABRICKS_JOB_NAME:?DATABRICKS_JOB_NAME is required}"
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-job_name="instacart-pipeline-production"
+job_name="${DATABRICKS_JOB_NAME}"
 host="${DATABRICKS_HOST%/}"
 api_base="${host}/api/2.2"
 payload_file="$(mktemp)"
@@ -24,7 +26,11 @@ curl_json() {
 jq \
   --arg commit "$GITHUB_SHA" \
   --arg warehouse "$DATABRICKS_WAREHOUSE_ID" \
-  '.git_source.git_commit = $commit
+  --arg environment "$DATABRICKS_ENVIRONMENT" \
+  --arg job_name "$DATABRICKS_JOB_NAME" \
+  '.name = $job_name
+   | .git_source.git_commit = $commit
+   | .tags.environment = $environment
    | .tasks |= map(.sql_task.warehouse_id = $warehouse)' \
   "${repository_root}/ops/instacart_job.json" > "$payload_file"
 
