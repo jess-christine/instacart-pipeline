@@ -92,7 +92,7 @@ def validate() -> list[str]:
     for sql_file in ROOT.rglob("*.sql"):
         sql = sql_file.read_text(encoding="utf-8")
         executable_sql = re.sub(r"(?m)^\s*--.*$", "", sql)
-        is_manual_check_placeholder = (
+        # Existing test SQL files are documented manual checks; the release gate is executable.\n        is_manual_check_placeholder = (
             sql_file.parent.name == "tests"
             and sql_file.name != "99_cicd_quality_gate.sql"
         )
