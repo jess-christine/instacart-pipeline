@@ -9,7 +9,7 @@ CREATE SCHEMA IF NOT EXISTS instacart_bronze;
 CREATE SCHEMA IF NOT EXISTS instacart_silver;
 
 -- Dimension and fact tables.
-CREATE SCHEMA IF NOT EXISTS instacart_bronze;
+CREATE SCHEMA IF NOT EXISTS instacart_gold;
 
 -- Data-quality results and invalid records.
 CREATE SCHEMA IF NOT EXISTS instacart_quality;

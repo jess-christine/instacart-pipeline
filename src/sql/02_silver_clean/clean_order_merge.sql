@@ -1,5 +1,41 @@
 -- Orders Incremental MERGE
 
+-- Create the three targets once. Re-running this file only updates or inserts
+-- matching keys through MERGE; it does not recreate or duplicate the tables.
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.orders_prior_silver (
+    order_id BIGINT,
+    user_id BIGINT,
+    eval_set STRING,
+    order_number INT,
+    order_dow INT,
+    order_hour_of_day INT,
+    days_since_prior_order DOUBLE
+)
+USING DELTA;
+
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.orders_train_silver (
+    order_id BIGINT,
+    user_id BIGINT,
+    eval_set STRING,
+    order_number INT,
+    order_dow INT,
+    order_hour_of_day INT,
+    days_since_prior_order DOUBLE
+)
+USING DELTA;
+
+CREATE TABLE IF NOT EXISTS instacart.instacart_silver.orders_test_silver (
+    order_id BIGINT,
+    user_id BIGINT,
+    eval_set STRING,
+    order_number INT,
+    order_dow INT,
+    order_hour_of_day INT,
+    days_since_prior_order DOUBLE
+)
+USING DELTA;
+
+
 
 -- 1. Create the standardized and deduplicated merge source
 CREATE OR REPLACE TEMP VIEW orders_merge_source AS
