@@ -58,7 +58,7 @@ SELECT assert_true(
         FROM instacart.instacart_gold.fact_order_items
         WHERE order_id IS NULL
            OR product_id IS NULL
-           OR order_time_key IS NULL
+           OR timekey IS NULL
            OR add_to_cart_order IS NULL
            OR reordered IS NULL
     ) = 0,
@@ -94,7 +94,7 @@ SELECT assert_true(
         SELECT COUNT(*)
         FROM instacart.instacart_gold.fact_order_items f
         LEFT JOIN instacart.instacart_gold.dim_order_time t
-            ON f.order_time_key = t.order_time_key
+            ON f.timekey = t.order_time_key
         WHERE t.order_time_key IS NULL
     ) = 0,
     'Gold fact table contains time foreign-key violations'
