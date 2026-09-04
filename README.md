@@ -47,15 +47,14 @@ See the full [star schema](docs/star_schema.md) and [data dictionary](docs/data_
 instacart-pipeline/
 ├── src/
 │   ├── sql/
-│   │   ├── 00_setup/           # Schemas and source inspection
+│   │   ├── 00_setup/           # Schemas, source inspection and audit
 │   │   ├── 01_bronze_ingest/   # Raw data ingestion
 │   │   ├── 02_silver_clean/    # Cleaning and standardization
 │   │   ├── 03_gold_model/      # Fact and dimension tables
 │   │   └── 05_analytics/       # Business views and analysis
-│   └── images/                 # Project visuals
+│   └── images/                 # Project resources 
 ├── tests/                      # Source, clean, mart, and query checks
 ├── docs/                       # Architecture and model documentation
-└── presentation/               # Presentation notes
 ```
 
 ## ▶️ Run the pipeline
@@ -80,15 +79,7 @@ Before results are used for reporting, the tests verify:
 - Required audit metadata is present
 - Re-running the pipeline does not create duplicates
 - Business queries return valid results
-
-## ⚠️ Known data-quality note
-
-One source record, `product_id = 6816`, contains commas inside the product name:
-
-`Scotch Kids 5" Scissors, Blunted, Red`
-
-The raw CSV was parsed into the wrong columns, so the record was temporarily excluded from the clean table using safe numeric casting. The permanent fix is to reload the source with correct quoted-field handling.
-
+  
 ## 📚 Documentation
 
 - [Architecture](docs/architecture_diagram.md)
