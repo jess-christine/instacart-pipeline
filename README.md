@@ -1,118 +1,226 @@
-# 🛒 Instacart Data Pipeline
+# 🛒 Instacart Data Warehouse and Pipeline
 
-> Turning raw grocery-order data into clean, reliable, analytics-ready tables.
+> Turning raw grocery-order data into clean, reliable, and analytics-ready Delta tables.
 
-This team project uses **Databricks SQL** and **Delta Lake** to build an end-to-end data pipeline based on the Medallion Architecture.
+This collaborative project uses Databricks SQL, Delta Lake, Unity Catalog, and GitHub Actions to build an end-to-end data pipeline from the Instacart dataset. The design follows the Medallion Architecture and organizes the workflow into Bronze, Silver, Gold, Analytics, and Tests layers.
 
 ![Instacart pipeline architecture](src/images/Instacart_diagram.png)
 
-## 🔄 How the data moves
+## Project objective
 
-**Source files → Bronze → Silver → Gold → Analytics**
+The project transforms source CSV files into a dimensional data warehouse that supports product, order, time, department, aisle, and reorder analysis.
+
+It demonstrates:
+
+- End-to-end data engineering in Databricks
+- Medallion Architecture
+- Delta table creation and incremental `MERGE` operations
+- Data cleaning, standardization, and integration
+- A Gold-layer star schema for reporting
+- Automated data-quality checks
+- Development and production CI/CD deployment
+
+## Tools used
+
+- Databricks SQL
+- Delta Lake
+- Unity Catalog
+- Databricks SQL Warehouse
+- GitHub and GitHub Actions
+- SQL notebooks
+- Tableau or other BI tools for reporting
+
+## Data pipeline
+
+The pipeline follows this order:
+
+```text
+Source Files → Bronze → Silver → Gold → Analytics → Tests
+```
 
 | Layer | Purpose |
 |---|---|
-| 🥉 **Bronze** | Ingests raw Instacart data and keeps source-level records |
-| 🥈 **Silver** | Cleans, standardizes, validates, and combines related datasets |
-| 🥇 **Gold** | Builds fact and dimension tables for business analysis |
-| 📊 **Analytics** | Answers business questions through reusable SQL views and notebooks |
+| **Source** | Original Instacart CSV files stored in a Databricks Volume. Source data is not committed to GitHub. |
+| **Bronze** | Ingests source records into raw Delta tables with ingestion metadata. |
+| **Silver** | Cleans, casts, standardizes, validates, deduplicates, and combines related datasets. |
+| **Gold** | Builds the fact table and dimension tables used for analysis. |
+| **Analytics** | Contains reusable business views and notebook queries for reporting questions. |
+| **Tests** | Validates source data, cleaned data, Gold relationships, business results, and the release quality gate. |
 
-## 🎯 What this project demonstrates
+Each layer has one responsibility. Preview queries and validation logic are kept separate from the production transformation files.
 
-- A structured **ETL pipeline** in Databricks
-- **Delta tables** across Bronze, Silver, and Gold layers
-- Clean and reusable **SQL transformations**
-- A **star schema** for faster and simpler reporting
-- Data-quality checks for nulls, duplicates, keys, and row counts
-- Audit-friendly metadata and repeatable pipeline runs
+## Gold data model
 
-## 🧱 Gold data model
+The Gold layer uses a star schema centered on `fact_order_items`.
 
-The analytics layer is organized around:
+### Fact table
 
-- **Fact:** `fact_order_items`
-- **Dimensions:** `dim_order`, `dim_order_time`, and `dim_products`
+- `fact_order_items`
 
-Together, these tables support questions such as:
+One row represents one product recorded within one customer order.
 
-- Which products and departments are ordered most?
-- What days and hours have the highest ordering activity?
-- How often do customers reorder products?
+Important columns include:
 
-See the full [star schema](docs/star_schema.md) and [data dictionary](docs/data_dictionary.md).
+- `order_id`
+- `product_id`
+- `timekey`
+- `department_id`
+- `aisle_id`
+- `add_to_cart_order`
+- `reordered`
 
-## 📁 Repository guide
+The fact table uses `(order_id, product_id)` as its business key.
+
+### Dimension tables
+
+- `dim_order` — order and customer-level attributes
+- `dim_order_time` — day and hour attributes
+- `dim_products` — product, aisle, and department attributes
+
+### Relationships
+
+| Dimension key | Fact foreign key | Relationship |
+|---|---|---|
+| `dim_order.order_id` | `fact_order_items.order_id` | One order to many products |
+| `dim_products.product_id` | `fact_order_items.product_id` | One product to many order records |
+| `dim_order_time.order_time_key` | `fact_order_items.timekey` | One time record to many order records |
+
+See the complete [star schema](docs/star_schema.md) and [data dictionary](docs/data_dictionary.md).
+
+## Analytics
+
+The analytics layer contains:
+
+- `business_views.sql` for reusable reporting views
+- `Business Questions.ipynb` for exploratory and business-focused analysis
+
+The project supports questions such as:
+
+- Which products and departments are ordered most often?
+- Which days and hours have the highest order activity?
+- Which products are frequently reordered?
+- Which products are added early in an order?
+- How does product behavior differ across departments and aisles?
+
+Analytics files contain the final business queries. Data-quality validation remains in the `tests/` directory.
+
+## Repository structure
 
 ```text
 instacart-pipeline/
+├── .github/
+│   ├── dependabot.yml
+│   └── workflows/
+│       └── ci-cd.yml
+├── docs/
+│   ├── architecture_diagram.md
+│   ├── assumptions.md
+│   ├── data_dictionary.md
+│   └── star_schema.md
+├── ops/
+│   └── instacart_job.json
+├── presentation/
+│   └── Presentation_notes.ipynb
+├── scripts/
+│   ├── ci_validate.py
+│   └── deploy_databricks_job.sh
 ├── src/
-│   ├── sql/
-│   │   ├── 00_setup/           # Schemas, source inspection and audit
-│   │   ├── 01_bronze_ingest/   # Raw data ingestion
-│   │   ├── 02_silver_clean/    # Cleaning and standardization
-│   │   ├── 03_gold_model/      # Fact and dimension tables
-│   │   └── 05_analytics/       # Business views and analysis
-│   └── images/                 # Project resources 
-├── tests/                      # Source, clean, mart, and query checks
-├── docs/                       # Architecture and model documentation
+│   ├── images/
+│   │   └── Instacart_diagram.png
+│   └── sql/
+│       ├── 00_setup/          # Catalog, schemas, and source inspection
+│       ├── 01_bronze_ingest/  # Raw Delta ingestion
+│       ├── 02_silver_clean/   # Cleaning and integration
+│       ├── 03_gold_model/     # Dimensions and fact table
+│       └── 05_analytics/      # Views and business questions
+├── tests/
+│   ├── 01_source_checks.sql
+│   ├── 02_clean_checks.sql
+│   ├── 03_mart_checks.sql
+│   ├── 04_business_query_checks.sql
+│   └── 99_cicd_quality_gate.sql
+└── README.md
 ```
 
-## ▶️ Run the pipeline
+## Run the pipeline
 
-Run the folders in this order:
+Run the layers in this order:
 
-1. `00_setup`
-2. `01_bronze_ingest`
-3. `02_silver_clean`
-4. `03_gold_model`
-5. `05_analytics`
-6. `tests`
+1. `src/sql/00_setup`
+2. `src/sql/01_bronze_ingest`
+3. `src/sql/02_silver_clean`
+4. `src/sql/03_gold_model`
+5. `src/sql/05_analytics`
+6. `tests/`
 
-> Source paths are intentionally excluded from the repository. Configure them securely in Databricks before running ingestion.
+The Databricks job in `ops/instacart_job.json` runs the setup, Bronze, Silver, Gold, and release quality-gate tasks in dependency order.
 
-## ✅ Quality checks
+Before running ingestion, make sure the source CSV files are available at the configured Databricks Volume path.
 
-Before results are used for reporting, the tests verify:
+## Incremental and rerun behavior
 
-- Primary keys are complete and unique
-- Foreign keys match their dimension tables
-- Required audit metadata is present
-- Re-running the pipeline does not create duplicates
-- Business queries return valid results
-  
-## 📚 Documentation
+The pipeline is designed to be safe to rerun:
 
-- [Architecture](docs/architecture_diagram.md)
-- [Data dictionary](docs/data_dictionary.md)
-- [Star schema](docs/star_schema.md)
-- [Project assumptions](docs/assumptions.md)
+- Bronze tables use `CREATE TABLE IF NOT EXISTS`, so existing raw tables are not recreated.
+- Silver order tables use `MERGE` on `order_id`.
+- The Gold fact table uses `MERGE` on `(order_id, product_id)`.
+- Duplicate source matches are reduced to one deterministic record before the fact-table merge.
+- Existing records are updated and new business keys are inserted.
 
----
+Because the current source is a fixed set of CSV files read from a Volume, this is currently an idempotent and repeatable pipeline, not a complete file-level incremental ingestion design. A future production enhancement may use `COPY INTO` and a watermark/control Delta table to process only newly arrived files.
 
-Built as a collaborative **FTW Data Engineering** project. View the repository’s [contributors](https://github.com/ItsYangCoder/instacart-pipeline/graphs/contributors).
+## Quality checks
 
+The test files validate:
 
+- Source file availability and row counts
+- Required columns and data types
+- Null and duplicate business keys
+- Valid day, hour, and reorder values
+- Referential integrity between facts and dimensions
+- Required audit metadata
+- Duplicate protection after reruns
+- Business-query output consistency
 
----
+The `99_cicd_quality_gate.sql` file is the final Databricks release check. The job fails when a required quality assertion does not pass.
 
-## 🔁 CI/CD Automation
+## CI/CD automation
 
-GitHub Actions now validates and deploys the pipeline through separate development and production environments.
+GitHub Actions validates and deploys the pipeline through separate development and production environments.
 
-- Pull requests to `main` or `develop` run dependency-free checks for SQL, Databricks notebooks, job references, credentials, destructive SQL, and oversized/raw data files.
-- Pushes to `develop` deploy the exact commit to the `development` Databricks environment and use the `instacart-pipeline-development` job.
-- Pushes to `main` deploy the exact commit to the protected `production` environment and use the `instacart-pipeline-production` job.
-- The job runs setup, Bronze ingestion, Silver cleaning, Gold modeling, and the release quality gate in dependency order.
-- Documentation-only changes do not start a compute run. Pull requests collapse to the newest validation run, while environment deployments are serialized.
+- Pull requests to `main` or `develop` run repository validation only.
+- Pushes to `develop` deploy the exact commit to the `development` Databricks environment.
+- Pushes to `main` deploy the exact commit to the `production` Databricks environment.
+- The development job is named `instacart-pipeline-development`.
+- The production job is named `instacart-pipeline-production`.
+- The workflow validates SQL, notebooks, job references, repository size, credentials, destructive SQL, and deployment-script syntax.
+- The Databricks job runs Bronze → Silver → Gold → release quality gate.
+- Documentation-only changes do not start a Databricks compute run.
+- Production deployments are serialized, while outdated pull-request checks can be canceled.
 
 ### Required GitHub configuration
 
-Create two GitHub Environments named `development` and `production`. Add the same three secret names to each environment with environment-specific Databricks values:
+Create these GitHub Environments:
+
+- `development`
+- `production`
+
+Add the following secrets to each environment using environment-specific Databricks values:
 
 - `DATABRICKS_HOST`
 - `DATABRICKS_TOKEN`
 - `DATABRICKS_WAREHOUSE_ID`
 
-Configure required reviewers on the `production` environment if production releases need approval. The Databricks token should be limited to SQL execution and Jobs API operations.
+The secret values must not be stored in SQL files, notebooks, job manifests, or the README. Configure required reviewers on the `production` environment if production approval is required.
 
-The workflow does not store tokens, warehouse IDs, raw CSV files, or Databricks workspace copies in the repository.
+## Documentation
+
+- [Architecture](docs/architecture_diagram.md)
+- [Data dictionary](docs/data_dictionary.md)
+- [Star schema](docs/star_schema.md)
+- [Project assumptions](docs/assumptions.md)
+- [Presentation notes](presentation/Presentation_notes.ipynb)
+
+---
+
+Built as a collaborative FTW Data Engineering project. View the repository's [contributors](https://github.com/ItsYangCoder/instacart-pipeline/graphs/contributors).
