@@ -28,7 +28,7 @@ It demonstrates:
 - Databricks SQL Warehouse
 - GitHub and GitHub Actions
 - SQL notebooks
-- Tableau or other BI tools for reporting
+- Draw.io
 
 ## Data pipeline
 
