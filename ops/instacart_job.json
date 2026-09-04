@@ -1,8 +1,8 @@
 {
-  "name": "instacart-pipeline-production",
+  "name": "__DATABRICKS_JOB_NAME__",
   "description": "Managed by GitHub Actions. Runs the Instacart Bronze, Silver, Gold, and release quality-gate SQL pipeline.",
   "git_source": {
-    "git_url": "https://github.com/jess-christine/instacart-pipeline.git",
+    "git_url": "https://github.com/ItsYangCoder/instacart-pipeline.git",
     "git_provider": "gitHub",
     "git_commit": "__GIT_COMMIT__"
   },
@@ -13,7 +13,8 @@
   "timeout_seconds": 7200,
   "tags": {
     "project": "instacart-pipeline",
-    "managed_by": "github-actions"
+    "managed_by": "github-actions",
+    "environment": "__DATABRICKS_ENVIRONMENT__"
   },
   "tasks": [
     {
@@ -32,7 +33,11 @@
     },
     {
       "task_key": "ingest_aisles",
-      "depends_on": [{"task_key": "init_schemas"}],
+      "depends_on": [
+        {
+          "task_key": "init_schemas"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/01_bronze_ingest/ingest_aisles.sql",
@@ -46,7 +51,11 @@
     },
     {
       "task_key": "ingest_departments",
-      "depends_on": [{"task_key": "init_schemas"}],
+      "depends_on": [
+        {
+          "task_key": "init_schemas"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/01_bronze_ingest/ingest_departments.sql",
@@ -60,7 +69,11 @@
     },
     {
       "task_key": "ingest_order_products_prior",
-      "depends_on": [{"task_key": "init_schemas"}],
+      "depends_on": [
+        {
+          "task_key": "init_schemas"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/01_bronze_ingest/ingest_order_products_prior.sql",
@@ -74,7 +87,11 @@
     },
     {
       "task_key": "ingest_order_products_train",
-      "depends_on": [{"task_key": "init_schemas"}],
+      "depends_on": [
+        {
+          "task_key": "init_schemas"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/01_bronze_ingest/ingest_order_products_train.sql",
@@ -88,7 +105,11 @@
     },
     {
       "task_key": "ingest_orders",
-      "depends_on": [{"task_key": "init_schemas"}],
+      "depends_on": [
+        {
+          "task_key": "init_schemas"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/01_bronze_ingest/ingest_orders.sql",
@@ -102,7 +123,11 @@
     },
     {
       "task_key": "ingest_products",
-      "depends_on": [{"task_key": "init_schemas"}],
+      "depends_on": [
+        {
+          "task_key": "init_schemas"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/01_bronze_ingest/ingest_products.sql",
@@ -116,7 +141,11 @@
     },
     {
       "task_key": "clean_aisles",
-      "depends_on": [{"task_key": "ingest_aisles"}],
+      "depends_on": [
+        {
+          "task_key": "ingest_aisles"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/02_silver_clean/clean_aisles.sql",
@@ -130,7 +159,11 @@
     },
     {
       "task_key": "clean_departments",
-      "depends_on": [{"task_key": "ingest_departments"}],
+      "depends_on": [
+        {
+          "task_key": "ingest_departments"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/02_silver_clean/clean_departments.sql",
@@ -144,7 +177,11 @@
     },
     {
       "task_key": "clean_orders_merge",
-      "depends_on": [{"task_key": "ingest_orders"}],
+      "depends_on": [
+        {
+          "task_key": "ingest_orders"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/02_silver_clean/clean_order_merge.sql",
@@ -158,7 +195,11 @@
     },
     {
       "task_key": "clean_products",
-      "depends_on": [{"task_key": "ingest_products"}],
+      "depends_on": [
+        {
+          "task_key": "ingest_products"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/02_silver_clean/clean_products.sql",
@@ -172,7 +213,11 @@
     },
     {
       "task_key": "clean_order_products_prior",
-      "depends_on": [{"task_key": "ingest_order_products_prior"}],
+      "depends_on": [
+        {
+          "task_key": "ingest_order_products_prior"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/02_silver_clean/clean_order_products.sql",
@@ -191,8 +236,12 @@
     {
       "task_key": "clean_order_products_train",
       "depends_on": [
-        {"task_key": "ingest_order_products_train"},
-        {"task_key": "clean_order_products_prior"}
+        {
+          "task_key": "ingest_order_products_train"
+        },
+        {
+          "task_key": "clean_order_products_prior"
+        }
       ],
       "sql_task": {
         "file": {
@@ -211,7 +260,11 @@
     },
     {
       "task_key": "dim_order",
-      "depends_on": [{"task_key": "clean_orders_merge"}],
+      "depends_on": [
+        {
+          "task_key": "clean_orders_merge"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/03_gold_model/dim_order.sql",
@@ -225,7 +278,11 @@
     },
     {
       "task_key": "dim_order_time",
-      "depends_on": [{"task_key": "clean_orders_merge"}],
+      "depends_on": [
+        {
+          "task_key": "clean_orders_merge"
+        }
+      ],
       "sql_task": {
         "file": {
           "path": "src/sql/03_gold_model/dim_order_time.sql",
@@ -240,9 +297,15 @@
     {
       "task_key": "dim_products",
       "depends_on": [
-        {"task_key": "clean_aisles"},
-        {"task_key": "clean_departments"},
-        {"task_key": "clean_products"}
+        {
+          "task_key": "clean_aisles"
+        },
+        {
+          "task_key": "clean_departments"
+        },
+        {
+          "task_key": "clean_products"
+        }
       ],
       "sql_task": {
         "file": {
@@ -258,9 +321,15 @@
     {
       "task_key": "fact_order_items",
       "depends_on": [
-        {"task_key": "clean_order_products_train"},
-        {"task_key": "dim_order_time"},
-        {"task_key": "dim_products"}
+        {
+          "task_key": "clean_order_products_train"
+        },
+        {
+          "task_key": "dim_order_time"
+        },
+        {
+          "task_key": "dim_products"
+        }
       ],
       "sql_task": {
         "file": {
@@ -276,10 +345,18 @@
     {
       "task_key": "release_quality_gate",
       "depends_on": [
-        {"task_key": "dim_order"},
-        {"task_key": "dim_order_time"},
-        {"task_key": "dim_products"},
-        {"task_key": "fact_order_items"}
+        {
+          "task_key": "dim_order"
+        },
+        {
+          "task_key": "dim_order_time"
+        },
+        {
+          "task_key": "dim_products"
+        },
+        {
+          "task_key": "fact_order_items"
+        }
       ],
       "sql_task": {
         "file": {

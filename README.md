@@ -92,24 +92,27 @@ Before results are used for reporting, the tests verify:
 Built as a collaborative **FTW Data Engineering** project. View the repository’s [contributors](https://github.com/ItsYangCoder/instacart-pipeline/graphs/contributors).
 
 
+
 ---
 
 ## 🔁 CI/CD Automation
 
-GitHub Actions now validates and deploys the pipeline automatically.
+GitHub Actions now validates and deploys the pipeline through separate development and production environments.
 
-- Pull requests to `main` run dependency-free checks for SQL, Databricks notebooks, job references, credentials, destructive SQL, and oversized/raw data files.
-- Merges to `main` update and run the `instacart-pipeline-production` Databricks job using the exact Git commit that triggered the deployment.
-- The job runs the setup, Bronze ingestion, Silver cleaning, Gold modeling, and release quality-gate tasks in dependency order.
-- The release quality gate uses Databricks `assert_true` checks for non-empty layers, required fact values, duplicate keys, and foreign-key integrity.
-- Documentation-only changes do not start a compute run. Pull requests collapse to the newest validation run, while production deployments are serialized.
+- Pull requests to `main` or `develop` run dependency-free checks for SQL, Databricks notebooks, job references, credentials, destructive SQL, and oversized/raw data files.
+- Pushes to `develop` deploy the exact commit to the `development` Databricks environment and use the `instacart-pipeline-development` job.
+- Pushes to `main` deploy the exact commit to the protected `production` environment and use the `instacart-pipeline-production` job.
+- The job runs setup, Bronze ingestion, Silver cleaning, Gold modeling, and the release quality gate in dependency order.
+- Documentation-only changes do not start a compute run. Pull requests collapse to the newest validation run, while environment deployments are serialized.
 
 ### Required GitHub configuration
 
-Add these as GitHub Actions secrets, preferably under a protected `production` environment:
+Create two GitHub Environments named `development` and `production`. Add the same three secret names to each environment with environment-specific Databricks values:
 
-- `DATABRICKS_HOST`: your workspace URL, for example `https://dbc-xxxxxxxx.cloud.databricks.com`.
-- `DATABRICKS_TOKEN`: a Databricks token with only the permissions needed for SQL execution and Jobs API operations.
-- `DATABRICKS_WAREHOUSE_ID`: the existing Serverless or Pro SQL Warehouse ID.
+- `DATABRICKS_HOST`
+- `DATABRICKS_TOKEN`
+- `DATABRICKS_WAREHOUSE_ID`
+
+Configure required reviewers on the `production` environment if production releases need approval. The Databricks token should be limited to SQL execution and Jobs API operations.
 
 The workflow does not store tokens, warehouse IDs, raw CSV files, or Databricks workspace copies in the repository.
