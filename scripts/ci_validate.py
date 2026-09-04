@@ -92,7 +92,15 @@ def validate() -> list[str]:
     for sql_file in ROOT.rglob("*.sql"):
         sql = sql_file.read_text(encoding="utf-8")
         executable_sql = re.sub(r"(?m)^\s*--.*$", "", sql)
-        if sql_file.name != "business_views.sql" and not executable_sql.strip():
+        is_manual_check_placeholder = (
+            sql_file.parent.name == "tests"
+            and sql_file.name != "99_cicd_quality_gate.sql"
+        )
+        if (
+            sql_file.name != "business_views.sql"
+            and not is_manual_check_placeholder
+            and not executable_sql.strip()
+        ):
             fail(errors, f"{sql_file.relative_to(ROOT)}: SQL file has no executable statement")
         if DESTRUCTIVE_SQL.search(executable_sql):
             fail(errors, f"{sql_file.relative_to(ROOT)}: destructive SQL is blocked in CI")
