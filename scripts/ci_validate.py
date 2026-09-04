@@ -153,8 +153,17 @@ def validate() -> list[str]:
         fail(errors, "00_init_schemas.sql: Gold schema must be created")
 
     fact_sql = (ROOT / "src/sql/03_gold_model/fact_order_items.sql").read_text(encoding="utf-8")
-    if "order_time_key" not in fact_sql or "timekey" in fact_sql:
-        fail(errors, "fact_order_items.sql: use the target column order_time_key consistently")
+    required_fact_fragments = (
+        "timekey INT",
+        "t.order_time_key AS timekey",
+        "product_id, timekey, department_id",
+        "source.timekey",
+    )
+    if any(fragment not in fact_sql for fragment in required_fact_fragments):
+        fail(
+            errors,
+            "fact_order_items.sql: use fact timekey and dim_order_time.order_time_key consistently",
+        )
 
     return errors
 

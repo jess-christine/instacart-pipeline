@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS instacart.instacart_gold.fact_order_items (
     order_id BIGINT,
     product_id BIGINT,
-    order_time_key INT,
+    timekey INT,
     department_id INT,
     aisle_id INT,
     add_to_cart_order INT,
@@ -19,7 +19,7 @@ USING (
         SELECT
             op.order_id,
             op.product_id,
-            t.order_time_key,
+            t.order_time_key AS timekey,
             p.department_id,
             p.aisle_id,
             op.add_to_cart_order,
@@ -51,7 +51,7 @@ USING (
     SELECT
         order_id,
         product_id,
-        order_time_key,
+        timekey,
         department_id,
         aisle_id,
         add_to_cart_order,
@@ -72,10 +72,10 @@ WHEN MATCHED THEN UPDATE SET
     target._source_file = source._source_file
 
 WHEN NOT MATCHED THEN INSERT (
-    order_id, product_id, order_time_key, department_id, aisle_id,
+    order_id, product_id, timekey, department_id, aisle_id,
     add_to_cart_order, reordered, _load_date, _source_file
 ) VALUES (
-    source.order_id, source.product_id, source.order_time_key, source.department_id,
+    source.order_id, source.product_id, source.timekey, source.department_id,
     source.aisle_id, source.add_to_cart_order, source.reordered,
     source._load_date, source._source_file
 );
