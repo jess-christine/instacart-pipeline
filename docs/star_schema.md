@@ -20,7 +20,7 @@ docs/architecture_diagram.png
 
 The diagram below shows the Gold-layer dimensional model used in this project.
 
-images/Instacart_diagram.png
+![Instacart pipeline](./src/images/instacart_diagram.png)
 
 Figure: Gold-layer star schema consisting of dimension tables and a central fact table.
 
