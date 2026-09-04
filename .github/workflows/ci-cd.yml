@@ -48,6 +48,9 @@ jobs:
       - name: Validate SQL, notebooks, job manifest, and repository size
         run: python3 scripts/ci_validate.py
 
+      - name: Validate deployment script syntax
+        run: bash -n scripts/deploy_databricks_job.sh
+
       - name: Check whitespace errors
         run: git diff --check
 
