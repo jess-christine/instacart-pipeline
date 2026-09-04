@@ -63,6 +63,84 @@ if [[ -n "$run_url" ]]; then
   echo "Databricks run: ${run_url}"
 fi
 
+print_failure_details() {
+  local failed_tasks task_key task_run_id task_state task_result state_message task_url
+  local parent_url
+  parent_url="$(jq -r '.run_page_url // empty' <<<"$run_response")"
+
+  echo "Databricks run \${run_id} failed." >&2
+  if [[ -n "$parent_url" ]]; then
+    echo "Databricks URL: \${parent_url}" >&2
+  fi
+
+  failed_tasks="$(jq -r '
+    .tasks[]?
+    | select(
+        (.state.result_state // "") == "FAILED"
+        or (.state.life_cycle_state // "") == "INTERNAL_ERROR"
+      )
+    | [
+        (.task_key // "unknown"),
+        (.run_id // ""),
+        (.state.life_cycle_state // "unknown"),
+        (.state.result_state // "unknown"),
+        (.state.state_message // "No state message"),
+        (.run_page_url // "")
+      ]
+    | @tsv
+  ' <<<"$run_response")"
+
+  if [[ -z "$failed_tasks" ]]; then
+    jq -r '.state.state_message // "No Databricks state message."' <<<"$run_response" >&2
+    return
+  fi
+
+  while IFS=
+while (( SECONDS < deadline )); do
+  run_response="$(curl_json -G "${api_base}/jobs/runs/get" \
+    --data-urlencode "run_id=${run_id}")"
+  lifecycle_state="$(jq -r '.state.life_cycle_state // empty' <<<"$run_response")"
+  result_state="$(jq -r '.state.result_state // empty' <<<"$run_response")"
+
+  case "$lifecycle_state" in
+    TERMINATED|SKIPPED|INTERNAL_ERROR)
+      if [[ "$result_state" == "SUCCESS" ]]; then
+        echo "Databricks job run ${run_id} succeeded."
+        exit 0
+      fi
+      print_failure_details
+      echo "Databricks job run ${run_id} ended with ${result_state:-${lifecycle_state}}." >&2
+      exit 1
+      ;;
+  esac
+
+  sleep 20
+done
+
+echo "Databricks job run ${run_id} exceeded the 120-minute CI timeout; canceling it." >&2
+curl_json -X POST "${api_base}/jobs/runs/cancel" \
+  --data "$(jq -n --argjson run_id "$run_id" '{run_id: $run_id}')" >/dev/null || true
+exit 1
+\t' read -r task_key task_run_id task_state task_result state_message task_url; do
+    echo "Failed task: \${task_key}" >&2
+    echo "  State: \${task_state}/\${task_result}" >&2
+    echo "  Message: \${state_message}" >&2
+    if [[ -n "$task_url" ]]; then
+      echo "  Databricks task URL: \${task_url}" >&2
+    fi
+
+    if [[ -n "$task_run_id" ]]; then
+      task_output=""
+      if task_output="$(curl_json -G "\${api_base}/jobs/runs/get-output" \
+        --data-urlencode "run_id=\${task_run_id}" 2>/dev/null)"; then
+        jq -r '
+          .error // .error_message // .notebook_output.result // empty
+        ' <<<"$task_output" | sed 's/^/  Output: /' >&2
+      fi
+    fi
+  done <<<"$failed_tasks"
+}
+
 deadline=$((SECONDS + 7200))
 while (( SECONDS < deadline )); do
   run_response="$(curl_json -G "${api_base}/jobs/runs/get" \
