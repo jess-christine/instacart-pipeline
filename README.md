@@ -4,8 +4,6 @@
 
 This collaborative project uses Databricks SQL, Delta Lake, Unity Catalog, and GitHub Actions to build an end-to-end data pipeline from the Instacart dataset. The design follows the Medallion Architecture and organizes the workflow into Bronze, Silver, Gold, Analytics, and Tests layers.
 
-![Instacart pipeline architecture](src/images/Instacart_diagram.png)
-
 ## Project objective
 
 The project transforms source CSV files into a dimensional data warehouse that supports product, order, time, department, aisle, and reorder analysis.
@@ -53,6 +51,7 @@ Each layer has one responsibility. Preview queries and validation logic are kept
 
 The Gold layer uses a star schema centered on `fact_order_items`.
 
+![Instacart pipeline architecture](src/images/Instacart_diagram.png)
 ### Fact table
 
 - `fact_order_items`
