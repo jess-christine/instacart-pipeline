@@ -22,7 +22,10 @@ USING (
         p.department_id,
         p.aisle_id,
         op.add_to_cart_order,
-        op.reordered,
+        CASE
+            WHEN op.reordered = 1 THEN TRUE
+            ELSE FALSE
+        END AS reordered,
         CURRENT_TIMESTAMP() AS _load_date,
         'pipeline_batch' AS _source_file
     FROM instacart.instacart_silver.order_products_silver op
